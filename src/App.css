@@ -1,0 +1,44 @@
+.App {
+  text-align: center;
+}
+
+.imageContainer {
+  line-height: 0;
+  column-count: 5;
+  column-gap: 8px;
+  /* display: grid; */
+  grid-template-columns: repeat(5, 1fr);
+  grid-column-gap: 8px;
+  grid-row-gap: 4px;
+  grid-auto-flow: row;
+}
+
+.imageContainer img {
+  width: 100%;
+  height: auto;
+  padding: 4px 0;
+}
+
+@media (max-width: 1200px) {
+  .imageContainer {
+    column-count: 4;
+  }
+}
+
+@media (max-width: 1000px) {
+  .imageContainer {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 800px) {
+  .imageContainer {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 400px) {
+  .imageContainer {
+    column-count: 1;
+  }
+}
