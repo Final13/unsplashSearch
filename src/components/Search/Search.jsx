@@ -57,42 +57,67 @@ const Search = () => {
   }
   const handleLogin = () => {
     const apiKey = process.env.REACT_APP_API_KEY
-    const url = `https://unsplash.com/oauth/authorize?client_id=${apiKey}&redirect_uri=http://localhost:3001/&response_type=code&scope=public`;
+    const permissions = 'public+read_user+write_user+read_photos+write_photos+write_likes+write_followers+read_collections+write_collections';
+    const url = `https://unsplash.com/oauth/authorize?client_id=${apiKey}&redirect_uri=http://localhost:3001/&response_type=code&scope=${permissions}`;
     window.open(url, '_blank').focus();
   }
   const handleLogout = () => {
     sessionStorage.removeItem('access_token');
     setIsAuth(false);
   }
+  const handleVote = async (id, method) => {
+    const token = isAuth && sessionStorage.getItem('access_token');
+    const endpoint = `https://api.unsplash.com/photos/${id}/like`;
+    try {
+      const result = await fetch(endpoint, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Dont know why api doesnt works as expected, so this just for visual result
+      const data = await result.json();
+      const photoIndex = photos.map(({ id }) => id ).indexOf(data.photo.id);
+      const updatedPhotos = photos;
+      updatedPhotos.splice(photoIndex, 1, data.photo)
+      setPhotos([...updatedPhotos]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
   return (
     <>
-    <div style={{ padding: 20, display: 'flex', justifyContent: 'flex-end' }}>
-      { isAuth ? <Button onClick={handleLogout}>Log out</Button> : <Button onClick={handleLogin}>Log in</Button>}
-    </div>
-    <Wrapper>
-      <Form onSubmit={handleSubmit}>
-        <Input
-          type="text"
-          list="searchHistory"
-          value={searchValue}
-          onChange={handleSearch}
-          placeholder="Unsplash search"
-        />
-        <datalist id="searchHistory" style={{ width: '100%' }}>
-          {history.map((historyOption) => <option key={historyOption} >{historyOption}</option>)}
-        </datalist>
-        <Button type="submit">Search</Button>
-      </Form>
-      <ImageWrapper>
-        {(photos || []).map((photo) => (
-          <Image
-            key={`${photo.id}-${Math.random()}`}
-            src={photo?.urls?.thumb}
-            alt={photo.alt_description}
+      <div style={{ padding: 20, display: 'flex', justifyContent: 'flex-end' }}>
+        { isAuth ? <Button onClick={handleLogout}>Log out</Button> : <Button onClick={handleLogin}>Log in</Button>}
+      </div>
+      <Wrapper>
+        <Form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            list="searchHistory"
+            value={searchValue}
+            onChange={handleSearch}
+            placeholder="Unsplash search"
           />
-        ))}
-      </ImageWrapper>
-    </Wrapper>
+          <datalist id="searchHistory" style={{ width: '100%' }}>
+            {history.map((historyOption) => <option key={historyOption} >{historyOption}</option>)}
+          </datalist>
+          <Button type="submit">Search</Button>
+        </Form>
+        <ImageWrapper>
+          {(photos || []).map((photo) => (
+            <div key={`${photo?.id}-${Math.random()}`} style={{ marginBottom: 16 }}>
+              <Image
+                src={photo?.urls?.thumb}
+                alt={photo?.alt_description}
+              />
+              { isAuth && photo?.liked_by_user
+                ? <Button vote="unlike" onClick={() => handleVote(photo?.id, 'DELETE')}>Unlike</Button>
+                : <Button vote="like" onClick={() => handleVote(photo?.id, 'POST')}>Like</Button>}
+            </div>
+          ))}
+        </ImageWrapper>
+      </Wrapper>
     </>
   );
 }

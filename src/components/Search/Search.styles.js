@@ -25,14 +25,13 @@ export default styled('div')`
 export const Image = styled('img')`
   width: 100%;
   height: auto;
-  padding: 4px 0;
   margin: auto;
 `;
 
 export const ImageWrapper = styled('div')`
   line-height: 0;
-  column-gap: 8px;
-  grid-column-gap: 8px;
+  column-gap: 16px;
+  grid-column-gap: 16px;
   grid-row-gap: 4px;
   column-count: 1;
 
@@ -64,17 +63,26 @@ export const Input = styled('input')`
 `;
 
 export const Button = styled('button')`
-  width: 200px;
-  margin-left: 10px;
-  background-color: #f2f3fa;
+  width: ${props => props.vote ? '100%' : '200px'};
+  margin-left: ${props => props.vote ? '0' : '10px'};
+  background-color: ${props => {
+    if (props.vote === 'like') return '#ebf8df';
+    if (props.vote === 'unlike') return '#f8dfe3';
+    return '#f2f3fa';
+  }};
   color: #4a4a4a;
   padding: 14px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: ${props => props.vote ? '0 0 4px 4px' : '4px'};
   cursor: pointer;
 
   &:hover {
-    background-color: #eff0f5;
+    background-color: ${props => {
+      if (props.vote === 'like') return '#d6f8b6';
+      if (props.vote === 'unlike') return '#f7c3cc';
+      return '#eff0f5';
+    }};
+  
   }
 `;
 
