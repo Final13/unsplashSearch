@@ -1,62 +1,56 @@
 import React, { useState } from 'react';
-import { Image } from './Search.styles';
+import Wrapper, { Image, ImageWrapper, Input, Button, Form } from './Search.styles';
 
 const Search = () => {
   const [searchValue, setSearchValue] = useState('');
   const [photos, setPhotos] = useState([]);
-  const [page, setPage] = useState(1);
-  window.onscroll = () => {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
-        setPage(page + 1);
-        unsplashSearch();
-    }
-};
+  const [history, setHistory] = useState(localStorage.getItem('searchHistory') ? JSON.parse(localStorage.getItem('searchHistory')) : []);
   const unsplashSearch = async (searchQuery) => {
     const apiKey = process.env.REACT_APP_API_KEY;
-    const endpoint = `https://api.unsplash.com/search/photos?query=${searchQuery || searchValue}&per_page=30&page=${page}&client_id=${apiKey}`;
+    const endpoint = `https://api.unsplash.com/search/photos?query=${searchQuery || searchValue}&per_page=30&page=1&client_id=${apiKey}`;
     try {
       const response = await fetch(endpoint);
       const json = await response.json();
-      setPhotos([...photos, ...json.results]);
-      console.log(json.results);
+      setPhotos(json?.results);
     } catch (e) {
       console.error(e);
     }
   }
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newHistory = [...new Set([searchValue, ...history])].slice(0, 5);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+    setHistory(newHistory);
     unsplashSearch(searchValue);
   }
   const handleSearch = (e) => {
     setSearchValue(e.target.value);
   }
-  (photos || []).map(photo => console.log(photo.urls.thumb));
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="headerSearch">
-          <span>Search blog posts</span>
-        </label>
-        <input
+    <Wrapper>
+      <Form onSubmit={handleSubmit}>
+        <Input
           type="text"
-          id="headerSearch"
+          list="searchHistory"
           value={searchValue}
           onChange={handleSearch}
-          placeholder="Search blog posts"
+          placeholder="Unsplash search"
         />
-        <button type="submit">Search</button>
-      </form>
-      <div className="imageContainer">
-        {(photos || []).map((photo, index) => (
+        <datalist id="searchHistory" style={{ width: '100%' }}>
+          {history.map((historyOption) => <option key={historyOption} >{historyOption}</option>)}
+        </datalist>
+        <Button type="submit">Search</Button>
+      </Form>
+      <ImageWrapper>
+        {(photos || []).map((photo) => (
           <Image
-            order={index + 1}
             key={`${photo.id}-${Math.random()}`}
-            src={photo.urls.thumb}
+            src={photo?.urls?.thumb}
             alt={photo.alt_description}
           />
         ))}
-      </div>
-    </>
+      </ImageWrapper>
+    </Wrapper>
   );
 }
 
